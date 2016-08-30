@@ -21,7 +21,7 @@
 
 {
     'name': 'Account Export CSV',
-    'version': '1.1',
+    'version': '8.0.1.1.0',
     'depends': [
         'account',
     ],
@@ -46,6 +46,6 @@
         'wizard/account_export_csv_view.xml',
         'menu.xml',
     ],
-    'installable': True,
+    'installable': False,
     'active': False,
 }

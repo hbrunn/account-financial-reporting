@@ -169,7 +169,7 @@ an issue in wkhtmltopdf
 the header and footer are created as text with arguments passed to
 wkhtmltopdf. The texts are defined inside the report classes.
 """,
-    'version': '1.1.0',
+    'version': '8.0.1.1.0',
     'author': "Camptocamp,Odoo Community Association (OCA)",
     'license': 'AGPL-3',
     'category': 'Finance',
@@ -202,6 +202,6 @@ wkhtmltopdf. The texts are defined inside the report classes.
              'tests/aged_trial_balance.yml'],
     # 'tests/account_move_line.yml'
     'active': False,
-    'installable': True,
+    'installable': False,
     'application': True,
 }

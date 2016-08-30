@@ -21,7 +21,7 @@
 ##############################################################################
 {
     'name': 'Add XLS export to accounting reports',
-    'version': '0.4',
+    'version': '8.0.0.4.0',
     'license': 'AGPL-3',
     'author': "Noviat,Odoo Community Association (OCA)",
     'category': 'Generic Modules/Accounting',
@@ -50,5 +50,5 @@
              'tests/partner_balance.yml',
              'tests/open_invoices.yml'],
     'active': False,
-    'installable': True,
+    'installable': False,
 }

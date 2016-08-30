@@ -23,7 +23,7 @@
 
 {
     'name': 'Print chart of accounts',
-    'version': '1.0',
+    'version': '8.0.1.0.0',
     'category': 'Reports/pdf',
     'author': "Savoir-faire Linux,Odoo Community Association (OCA)",
     'website': 'http://www.savoirfairelinux.com',
@@ -36,6 +36,6 @@
         'account_report.xml',
         'wizard/account_report_chart_of_account.xml',
     ],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
 }
