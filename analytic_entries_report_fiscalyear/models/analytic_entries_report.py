@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # © 2015 Therp BV <http://therp.nl>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+import collections
+import sqlparse
 import datetime
+from psycopg2.extensions import AsIs
 from dateutil.relativedelta import relativedelta
 from openerp import api, models, fields
 
@@ -13,54 +16,67 @@ class AnalyticEntriesReport(models.Model):
     period_id = fields.Many2one('account.period', 'Fiscal period')
 
     def init(self, cr):
-        # mutatis mutandis the same query as in
-        # account_analytic_entries_report.py
+        """Here, we try to be less invasive than the usual blunt overwrite of
+        the sql view"""
         # added joins to account_period & account_move_line
         # added appropriate fields to select list and group by
-        cr.execute("""
-            create or replace view analytic_entries_report as (
-                 select
-                     min(a.id) as id,
-                     count(distinct a.id) as nbr,
-                     a.date as date,
-                     a.user_id as user_id,
-                     a.name as name,
-                     analytic.partner_id as partner_id,
-                     a.company_id as company_id,
-                     a.currency_id as currency_id,
-                     a.account_id as account_id,
-                     a.general_account_id as general_account_id,
-                     a.journal_id as journal_id,
-                     a.move_id as move_id,
-                     a.product_id as product_id,
-                     a.product_uom_id as product_uom_id,
-                     sum(a.amount) as amount,
-                     sum(a.unit_amount) as unit_amount,
-                     coalesce(ml.period_id, p.id) as period_id,
-                     coalesce(p_from_move.fiscalyear_id, p.fiscalyear_id)
-                        as fiscalyear_id
+        super(AnalyticEntriesReport, self).init(cr)
+        cr.execute("select pg_get_viewdef(%s::regclass)", (self._table,))
+        for statement in sqlparse.parse(cr.fetchone()[0]):
+            current_keyword = None
+            for token in statement:
+                if token.is_keyword:
+                    current_keyword = token
+                if isinstance(token, sqlparse.sql.IdentifierList) and\
+                   current_keyword.value == 'SELECT':
+                    last = None
+                    for last in token:
+                        pass
+                    token.insert_after(last, sqlparse.sql.Token(
+                        sqlparse.tokens.Generic,
+                        ',coalesce(ml.period_id, p.id) as period_id,'
+                        'coalesce(p_from_move.fiscalyear_id, p.fiscalyear_id) '
+                        'as fiscalyear_id'
+                    ))
+                if isinstance(
+                    token,
+                    (sqlparse.sql.IdentifierList, sqlparse.sql.Parenthesis)
+                ) and current_keyword.value == 'FROM':
+                    def find_table(token):
+                        if isinstance(token, sqlparse.sql.Identifier) and\
+                           token.get_real_name() == 'account_analytic_line':
+                            return token
+                        if not isinstance(token, collections.Iterable):
+                            return
+                        for child_token in token:
+                            result = find_table(child_token)
+                            if result:
+                                return result
 
-                 from
-                     account_analytic_line a
-                     join account_analytic_account analytic
-                        on analytic.id = a.account_id
-                     left outer join account_period p
-                        on p.special = False and p.date_start <= a.date
-                            and p.date_stop >= a.date
-                     left outer join account_move_line ml
-                        on a.move_id = ml.id
-                     left outer join account_period p_from_move
-                        on ml.period_id = p_from_move.id
+                    table = find_table(token)
+                    assert table
 
-                 group by
-                     a.date,
-                     coalesce(p_from_move.fiscalyear_id, p.fiscalyear_id),
-                     coalesce(ml.period_id, p.id), a.user_id,a.name,
-                     analytic.partner_id,a.company_id, a.currency_id,
-                     a.account_id,a.general_account_id,a.journal_id,
-                     a.move_id,a.product_id,a.product_uom_id
-            )
-        """)
+                    table.parent.insert_after(table, sqlparse.sql.Token(
+                        sqlparse.tokens.Generic,
+                        ' left outer join account_period p '
+                        'on p.special = False and p.date_start <= a.date '
+                        'and p.date_stop >= a.date '
+                        'left outer join account_move_line ml '
+                        'on a.move_id = ml.id '
+                        'left outer join account_period p_from_move '
+                        'on ml.period_id = p_from_move.id '))
+                if isinstance(token, sqlparse.sql.IdentifierList) and\
+                   current_keyword.value == 'BY':
+                    last = None
+                    for last in token:
+                        pass
+                    token.insert_after(last, sqlparse.sql.Token(
+                        sqlparse.tokens.Generic,
+                        ', coalesce(p_from_move.fiscalyear_id,'
+                        'p.fiscalyear_id),'
+                        'coalesce(ml.period_id, p.id)'))
+        cr.execute("create or replace view %s as (%s)",
+                   (AsIs(self._table), AsIs(str(statement)[:-1])))
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None,

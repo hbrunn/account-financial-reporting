@@ -12,4 +12,9 @@
     "data": [
         "views/analytics_entry_report.xml",
     ],
+    "external_dependencies": {
+        'python': [
+            'sqlparse',
+        ],
+    },
 }

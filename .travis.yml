@@ -8,6 +8,7 @@ addons:
    packages:
       - expect-dev  # provides unbuffer utility
       - python-lxml # because pip installation is slow
+      - python-sqlparse
       - wkhtmltopdf
 
 language: python
