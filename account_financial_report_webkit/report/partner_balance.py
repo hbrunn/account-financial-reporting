@@ -81,7 +81,7 @@ class PartnerBalanceWebkit(report_sxw.rml_parse,
         OpenERP allows to reconcile move lines between different partners,
         so the generated entries in the opening period are unreliable.
         """
-        return 'initial_balance'
+        return 'opening_balance'
 
     def set_context(self, objects, data, ids, report_type=None):
         """Populate a ledger_lines attribute on each browse record that will
