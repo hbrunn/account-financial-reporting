@@ -53,7 +53,7 @@ class AnalyticEntriesReport(models.Model):
                         ' left join account_move_line m'
                         ' on a.move_id=m.id '))
                 if isinstance(token, sqlparse.sql.IdentifierList) and\
-                   current_keyword.value == 'BY':
+                   current_keyword.value == 'GROUP BY':
                     last = None
                     for last in token:
                         pass
