@@ -66,7 +66,7 @@ class AnalyticEntriesReport(models.Model):
                         'left outer join account_period p_from_move '
                         'on ml.period_id = p_from_move.id '))
                 if isinstance(token, sqlparse.sql.IdentifierList) and\
-                   current_keyword.value == 'BY':
+                   current_keyword.value == 'GROUP BY':
                     last = None
                     for last in token:
                         pass
